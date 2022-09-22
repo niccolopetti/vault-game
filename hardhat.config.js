@@ -13,10 +13,18 @@ require("@nomiclabs/hardhat-etherscan");
 module.exports = {
   solidity: "0.8.12",
   networks: {
-    rinkeby: {
+    localhost: {
+      url: "http://localhost:8545",
+      /*      
+        notice no mnemonic here? it will just use account 0 of the hardhat node to deploy
+        (you can put in a mnemonic here to set the deployer locally)
+      
+      */
+    },
+/*     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: [process.env.RINKEBY_PK],
-    },
+    }, */
   },
   watcher: {
     compile: {

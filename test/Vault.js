@@ -8,50 +8,19 @@ describe("Vault contract", function () {
     vault = await Vault.deploy({ value: ethers.utils.parseEther("1") });
   });
 
-  it("Deposit", async function () {
+  it("Hack", async function () {
     [deployer, depositor] = await ethers.getSigners();
-
-    const flagHolder = await vault.flagHolder();
+    let flagHolder = await vault.flagHolder();
     expect(flagHolder).to.equal("0x0000000000000000000000000000000000000000");
 
-    const tx = await vault.connect(depositor).deposit(
-      ethers.utils.parseEther("1"),
-      depositor.address,
-      { value: ethers.utils.parseEther("1") }
-    );
+     const Attacker = await ethers.getContractFactory("Attacker");
+     let attacker = await Attacker.deploy(vault.address);
+     await attacker.deployTransaction.wait();
+     const tx = await attacker.connect(deployer).attack({
+      value: ethers.utils.parseEther("0.1"),
+    });
     await tx.wait();
-    expect(await vault.balanceOf(depositor.address)).to.equal(ethers.utils.parseEther("1"));
-
-    await expect(
-      vault.connect(depositor).captureTheFlag(depositor.address)
-    ).to.be.revertedWith("Balance is not 0");
-  });
-
-  it("Withdraw", async function () {
-    [deployer, depositor] = await ethers.getSigners();
-
-    const flagHolder = await vault.flagHolder();
-    expect(flagHolder).to.equal("0x0000000000000000000000000000000000000000");
-
-    let tx = await vault.connect(depositor).deposit(
-      ethers.utils.parseEther("1"),
-      depositor.address,
-      { value: ethers.utils.parseEther("1") }
-    );
-    await tx.wait();
-    expect(await vault.balanceOf(depositor.address)).to.equal(ethers.utils.parseEther("1"));
-  
-     tx = await vault.connect(depositor).withdraw(
-      ethers.utils.parseEther("1"),
-      depositor.address,
-      depositor.address,
-    );
-
-    await tx.wait();
-    expect(await vault.balanceOf(depositor.address)).to.equal(ethers.utils.parseEther("0"));
-
-    await expect(
-      vault.connect(depositor).captureTheFlag(depositor.address)
-    ).to.be.revertedWith("Balance is not 0");
+    flagHolder = await vault.flagHolder();
+    expect(flagHolder).to.equal(deployer.address);
   });
 });
